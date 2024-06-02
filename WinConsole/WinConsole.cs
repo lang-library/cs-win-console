@@ -5,17 +5,20 @@ using System.Text;
 namespace Global;
 public static class WinConsole
 {
-    public static void Alloc(string? encodingName = null)
+    //public static void Alloc(string? encodingName = null)
+    public static void Alloc()
     {
         if (Environment.OSVersion.Platform != PlatformID.Win32NT) return;
-        Encoding encoding = (encodingName == null) ? encoding = Encoding.Default : CodePagesEncodingProvider.Instance.GetEncoding(encodingName);
-        bool consoleAttached = (AllocConsole() != 0);
+        Encoding encoding = CodePagesEncodingProvider.Instance.GetEncoding((int)GetACP());
+        AllocConsole();
         var stdout = new StreamWriter(Console.OpenStandardOutput(), encoding);
         stdout.AutoFlush = true;
         Console.SetOut(stdout);
         var stderr = new StreamWriter(Console.OpenStandardError(), encoding);
         stderr.AutoFlush = true;
         Console.SetError(stderr);
+        var stdin = new StreamReader(Console.OpenStandardInput(), encoding);
+        Console.SetIn(stdin);
     }
     public static void Free()
     {
@@ -41,5 +44,7 @@ public static class WinConsole
     private static extern bool FreeConsole();
     private const UInt32 ERROR_ACCESS_DENIED = 5;
     private const UInt32 ATTACH_PARRENT = 0xFFFFFFFF;
+    [DllImport("kernel32.dll")]
+    private static extern uint GetACP();
     #endregion
 }
